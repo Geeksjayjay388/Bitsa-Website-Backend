@@ -1,40 +1,47 @@
 const express = require('express');
 const router = express.Router();
-const {
-  submitFeedback,
-  getAllFeedback,
-  getFeedback,
-  updateFeedbackStatus,
-  deleteFeedback
-} = require('../controllers/feedbackController');
+const Feedback = require('../models/Feedback');
+const { protect } = require('../middleware/auth');
 
-const { protect, authorize } = require('../middleware/auth');
-
-
-
+// @desc    Submit feedback
 // @route   POST /api/feedback
-// @desc    Submit feedback (Public - but links to user if logged in)
 // @access  Public
-router.post('/', submitFeedback);
+router.post('/', async (req, res, next) => {
+  try {
+    const { name, email, subject, message } = req.body;
 
-// @route   GET /api/feedback
-// @desc    Get all feedback (with optional status filter)
-// @access  Private/Admin
-router.get('/', protect, authorize('admin'), getAllFeedback);
+    const feedback = await Feedback.create({
+      name,
+      email,
+      subject,
+      message
+    });
 
-// @route   GET /api/feedback/:id
-// @desc    Get single feedback by ID
-// @access  Private/Admin
-router.get('/:id', protect, authorize('admin'), getFeedback);
+    res.status(201).json({
+      success: true,
+      data: feedback,
+      message: 'Feedback submitted successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
-// @route   PUT /api/feedback/:id/status
-// @desc    Update feedback status (pending/read/replied) and add admin notes
-// @access  Private/Admin
-router.put('/:id/status', protect, authorize('admin'), updateFeedbackStatus);
+// @desc    Get my feedback
+// @route   GET /api/feedback/my
+// @access  Private
+router.get('/my', protect, async (req, res, next) => {
+  try {
+    const feedback = await Feedback.find({ email: req.user.email }).sort({ createdAt: -1 });
 
-// @route   DELETE /api/feedback/:id
-// @desc    Delete feedback
-// @access  Private/Admin
-router.delete('/:id', protect, authorize('admin'), deleteFeedback);
+    res.status(200).json({
+      success: true,
+      count: feedback.length,
+      data: feedback
+    });
+  } catch (error) {
+    next(error);
+  }
+});
 
 module.exports = router;

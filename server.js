@@ -52,17 +52,36 @@ app.use(fileUpload({
 }));
 
 // CORS
-const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-app.use(cors(corsOptions));
+// CORS - Fixed configuration
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5183',
+  'http://localhost:3000',
+  process.env.CLIENT_URL
+].filter(Boolean); // Remove undefined values
 
-// Logging
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev'));
-}
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (mobile apps, Postman, etc)
+    if (!origin) return callback(null, true);
+    
+    // Remove trailing slashes for comparison
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    const isAllowed = allowedOrigins.some(allowed => 
+      allowed && normalizedOrigin === allowed.replace(/\/$/, '')
+    );
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
+}));
 
 // Mount routers
 app.use('/api/auth', require('./routes/auth'));

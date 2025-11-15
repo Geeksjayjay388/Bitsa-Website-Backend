@@ -5,41 +5,36 @@ const BlogSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please provide blog title'],
     trim: true,
-    maxlength: [150, 'Title cannot be more than 150 characters']
-  },
-  excerpt: {
-    type: String,
-    required: [true, 'Please provide blog excerpt'],
-    maxlength: [300, 'Excerpt cannot be more than 300 characters']
+    maxlength: [200, 'Title cannot be more than 200 characters']
   },
   content: {
     type: String,
     required: [true, 'Please provide blog content']
   },
-  author: {
-    name: {
-      type: String,
-      required: true
-    },
-    role: {
-      type: String,
-      required: true
-    }
-  },
-  image: {
-    url: {
-      type: String,
-      required: [true, 'Please provide blog image']
-    },
-    publicId: String
-  },
-  tag: {
+  excerpt: {
     type: String,
-    enum: {
-      values: ['Tech Trends', 'Tutorials', 'Career Advice', 'Community'],
-      message: 'Tag must be Tech Trends, Tutorials, Career Advice, or Community'
-    },
-    required: [true, 'Please select a tag']
+    maxlength: [500, 'Excerpt cannot be more than 500 characters']
+  },
+  category: {
+    type: String,
+    enum: ['tutorial', 'article', 'news', 'guide'],
+    default: 'article'
+  },
+  imageUrl: {
+    type: String,
+    default: 'https://via.placeholder.com/800x400?text=Blog+Image'  // CHANGED: Added default
+  },
+  author: {
+    type: String,
+    default: 'BITSA Team'
+  },
+  authorRole: {
+    type: String,
+    default: 'Editor'
+  },
+  readTime: {
+    type: String,
+    default: '5 min read'
   },
   featured: {
     type: Boolean,
@@ -47,31 +42,23 @@ const BlogSchema = new mongoose.Schema({
   },
   published: {
     type: Boolean,
-    default: false
+    default: true
   },
   views: {
     type: Number,
     default: 0
   },
-  readTime: {
-    type: String,
-    default: '5 min read'
-  },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  },
-  publishedAt: {
-    type: Date,
-    default: null
+    required: false  // CHANGED: Made optional
   }
 }, {
   timestamps: true
 });
-
-// Index for faster queries
-BlogSchema.index({ published: 1, publishedAt: -1 });
-BlogSchema.index({ tag: 1 });
 
 module.exports = mongoose.model('Blog', BlogSchema);

@@ -1,3 +1,4 @@
+//authController.js
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 

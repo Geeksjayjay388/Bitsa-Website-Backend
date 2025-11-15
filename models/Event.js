@@ -9,66 +9,50 @@ const EventSchema = new mongoose.Schema({
   },
   description: {
     type: String,
-    required: [true, 'Please provide event description'],
-    maxlength: [500, 'Description cannot be more than 500 characters']
+    required: [true, 'Please provide event description']
   },
   date: {
-    type: String,
+    type: Date,
     required: [true, 'Please provide event date']
   },
   time: {
     type: String,
-    required: [true, 'Please provide event time']
+    default: 'TBA'
   },
-  location: {
+  venue: {
     type: String,
-    required: [true, 'Please provide event location']
+    default: 'TBA'  // CHANGED: Made optional with default
   },
-  image: {
-    url: {
-      type: String,
-      required: [true, 'Please provide event image']
-    },
-    publicId: String
+  capacity: {
+    type: Number,
+    required: [true, 'Please provide event capacity'],
+    min: [1, 'Capacity must be at least 1']
+  },
+  imageUrl: {
+    type: String,
+    default: 'https://via.placeholder.com/800x400?text=Event+Image'  // CHANGED: Added default
   },
   category: {
     type: String,
-    enum: {
-      values: ['Competition', 'Workshop', 'Networking', 'Seminar'],
-      message: 'Category must be Competition, Workshop, Networking, or Seminar'
-    },
-    required: [true, 'Please select event category']
-  },
-  registrations: [{
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    registeredAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  maxParticipants: {
-    type: Number,
-    default: null
+    enum: ['Competition', 'Workshop', 'Networking', 'Seminar'],
+    default: 'Workshop'
   },
   status: {
     type: String,
-    enum: ['upcoming', 'ongoing', 'completed', 'cancelled'],
+    enum: ['upcoming', 'ongoing', 'completed'],
     default: 'upcoming'
   },
+  registeredUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false  // CHANGED: Made optional
   }
 }, {
   timestamps: true
 });
-
-// Index for faster queries
-EventSchema.index({ status: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Event', EventSchema);
