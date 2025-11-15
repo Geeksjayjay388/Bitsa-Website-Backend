@@ -57,6 +57,7 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5183',
   'http://localhost:3000',
+  'https://bitsa-hackathon.vercel.app/',
   process.env.CLIENT_URL
 ].filter(Boolean); // Remove undefined values
 
@@ -136,10 +137,10 @@ const server = app.listen(PORT, () => {
 ║           🚀 BITSA API SERVER RUNNING              ║
 ║                                                    ║
 ║  Environment: ${envColor} ${env.toUpperCase().padEnd(31)}║
-║  Port:        🔌 ${PORT.toString().padEnd(32)}║
+║  Port:        🔌 ${PORT.toString().padEnd(32)}     ║
 ║  Database:    ✅ Connected                         ║
 ║  API URL:     🌐 http://localhost:${PORT.toString().padEnd(19)}║
-║                                                    ║
+║  API URL:      https://bitsa-hackathon.vercel.app/ ║
 ║  Health:      /api/health                          ║
 ║  Auth:        /api/auth                            ║
 ║  Events:      /api/events                          ║
