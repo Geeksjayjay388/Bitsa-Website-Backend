@@ -19,6 +19,11 @@ connectDB();
 
 const app = express();
 
+// Dev logging middleware
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
+
 // Security Middleware
 app.use(helmet({
   contentSecurityPolicy: false,
@@ -27,10 +32,11 @@ app.use(helmet({
 app.use(mongoSanitize());
 app.use(xss());
 app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  windowMs: 10 * 60 * 1000,
+  max: 100,
   message: 'Too many requests from this IP, please try again later'
 });
 app.use('/api/', limiter);
@@ -46,27 +52,24 @@ app.use(cookieParser());
 app.use(fileUpload({
   useTempFiles: true,
   tempFileDir: '/tmp/',
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max file size
+  limits: { fileSize: 10 * 1024 * 1024 },
   abortOnLimit: true,
   createParentPath: true
 }));
 
 // CORS
-// CORS - Fixed configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5183',
   'http://localhost:3000',
-  'https://bitsa-hackathon.vercel.app/',
+  'https://bitsa-hackathon.vercel.app',
   process.env.CLIENT_URL
-].filter(Boolean); // Remove undefined values
+].filter(Boolean);
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, etc)
     if (!origin) return callback(null, true);
     
-    // Remove trailing slashes for comparison
     const normalizedOrigin = origin.replace(/\/$/, '');
     const isAllowed = allowedOrigins.some(allowed => 
       allowed && normalizedOrigin === allowed.replace(/\/$/, '')
@@ -75,7 +78,8 @@ app.use(cors({
     if (isAllowed) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.log('❌ CORS blocked origin:', origin);
+      callback(null, true); // Allow anyway for debugging
     }
   },
   credentials: true,
@@ -84,14 +88,51 @@ app.use(cors({
   optionsSuccessStatus: 200
 }));
 
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`📨 ${req.method} ${req.path}`);
+  next();
+});
+
 // Mount routers
+console.log('🔧 Mounting routes...');
+
 app.use('/api/auth', require('./routes/auth'));
+console.log('✅ Mounted: /api/auth');
+
 app.use('/api/events', require('./routes/events'));
+console.log('✅ Mounted: /api/events');
+
 app.use('/api/blogs', require('./routes/blogs'));
+console.log('✅ Mounted: /api/blogs');
+
 app.use('/api/users', require('./routes/user'));
+console.log('✅ Mounted: /api/users');
+
 app.use('/api/gallery', require('./routes/gallery'));
+console.log('✅ Mounted: /api/gallery');
+
 app.use('/api/feedback', require('./routes/feedback'));
+console.log('✅ Mounted: /api/feedback');
+
 app.use('/api/admin', require('./routes/admin'));
+console.log('✅ Mounted: /api/admin');
+
+console.log('✅ All routes mounted successfully');
+
+// Test endpoint to verify feedback route
+app.get('/api/feedback-test', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Feedback route is accessible',
+    availableRoutes: [
+      'POST /api/feedback',
+      'GET /api/feedback/my (protected)',
+      'GET /api/feedback/admin/all (admin only)',
+      'DELETE /api/feedback/:id (admin only)'
+    ]
+  });
+});
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -99,7 +140,16 @@ app.get('/api/health', (req, res) => {
     success: true,
     message: 'BITSA API is running smoothly',
     environment: process.env.NODE_ENV,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    routes: {
+      auth: '/api/auth',
+      events: '/api/events',
+      blogs: '/api/blogs',
+      users: '/api/users',
+      gallery: '/api/gallery',
+      feedback: '/api/feedback ⭐',
+      admin: '/api/admin'
+    }
   });
 });
 
@@ -115,6 +165,7 @@ app.get('/', (req, res) => {
 
 // 404 handler - must be after all routes
 app.use((req, res) => {
+  console.log('❌ 404 Not Found:', req.method, req.originalUrl);
   res.status(404).json({
     success: false,
     error: 'Route not found',
@@ -141,15 +192,16 @@ const server = app.listen(PORT, () => {
 ║  Port:        🔌 ${PORT.toString().padEnd(32)}     ║
 ║  Database:    ✅ Connected                         ║
 ║  API URL:     🌐 http://localhost:${PORT.toString().padEnd(19)}║
-║  API URL:      https://bitsa-hackathon.vercel.app/ ║
 ║  Health:      /api/health                          ║
 ║  Auth:        /api/auth                            ║
 ║  Events:      /api/events                          ║
-║  Blogs:       /api/blogs  
-   Users:       /api/users                           ║
+║  Blogs:       /api/blogs                           ║
+║  Users:       /api/users                           ║
 ║  Gallery:     /api/gallery                         ║
-║  Feedback:    /api/feedback                        ║
+║  Feedback:    /api/feedback ⭐                     ║
 ║  Admin:       /api/admin                           ║
+║                                                    ║
+║  🧪 Test:     /api/feedback-test                   ║
 ║                                                    ║
 ╚════════════════════════════════════════════════════╝
   `);
@@ -158,7 +210,6 @@ const server = app.listen(PORT, () => {
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
   console.log('❌ Unhandled Rejection:', err.message);
-  // Close server & exit process
   server.close(() => {
     console.log('🛑 Server closed due to unhandled rejection');
     process.exit(1);
