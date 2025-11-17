@@ -88,6 +88,7 @@ app.use(cors({
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/blogs', require('./routes/blogs'));
+app.use('/api/users', require('./routes/user'));
 app.use('/api/gallery', require('./routes/gallery'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/admin', require('./routes/admin'));
@@ -144,7 +145,8 @@ const server = app.listen(PORT, () => {
 ║  Health:      /api/health                          ║
 ║  Auth:        /api/auth                            ║
 ║  Events:      /api/events                          ║
-║  Blogs:       /api/blogs                           ║
+║  Blogs:       /api/blogs  
+   Users:       /api/users                           ║
 ║  Gallery:     /api/gallery                         ║
 ║  Feedback:    /api/feedback                        ║
 ║  Admin:       /api/admin                           ║

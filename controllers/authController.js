@@ -1,4 +1,3 @@
-//authController.js
 const User = require('../models/User');
 const ErrorResponse = require('../utils/errorResponse');
 
@@ -80,7 +79,20 @@ exports.getMe = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      data: user
+      data: {
+        id: user._id,
+        _id: user._id,
+        fullName: user.fullName,
+        name: user.fullName,
+        email: user.email,
+        course: user.course,
+        year: user.year,
+        role: user.role,
+        profileImage: user.profileImage,
+        isActive: user.isActive,
+        createdAt: user.createdAt,
+        lastLogin: user.lastLogin
+      }
     });
   } catch (error) {
     next(error);
@@ -173,12 +185,16 @@ const sendTokenResponse = (user, statusCode, res) => {
       token,
       user: {
         id: user._id,
+        _id: user._id,
         fullName: user.fullName,
+        name: user.fullName,
         email: user.email,
         course: user.course,
         year: user.year,
         role: user.role,
-        profileImage: user.profileImage
+        profileImage: user.profileImage,
+        isActive: user.isActive,
+        createdAt: user.createdAt
       }
     });
 };

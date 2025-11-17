@@ -58,7 +58,9 @@ router.post('/:id/register', protect, async (req, res, next) => {
     }
 
     // Check if already registered
-    const alreadyRegistered = event.registeredUsers.includes(req.user.id);
+    const alreadyRegistered = event.registeredUsers.some(
+      userId => userId.toString() === req.user.id
+    );
 
     if (alreadyRegistered) {
       return res.status(400).json({
@@ -102,6 +104,19 @@ router.delete('/:id/unregister', protect, async (req, res, next) => {
       });
     }
 
+    // Check if user is registered
+    const isRegistered = event.registeredUsers.some(
+      userId => userId.toString() === req.user.id
+    );
+
+    if (!isRegistered) {
+      return res.status(400).json({
+        success: false,
+        message: 'You are not registered for this event'
+      });
+    }
+
+    // Remove user from registered users
     event.registeredUsers = event.registeredUsers.filter(
       userId => userId.toString() !== req.user.id
     );

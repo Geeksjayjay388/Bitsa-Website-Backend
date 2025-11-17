@@ -52,6 +52,11 @@ const UserSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  // ✅ ADD THIS FIELD - Array of event IDs this user has registered for
+  registeredEvents: [{
+    type: mongoose.Schema.ObjectId,
+    ref: 'Event'
+  }],
   lastLogin: {
     type: Date,
     default: null
