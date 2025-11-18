@@ -104,7 +104,7 @@ exports.getMyEvents = async (req, res) => {
 
     const events = await Event.find({ registeredUsers: userId })
       .sort({ date: 1 })
-      .populate('registeredUsers', 'fullName email');
+      .populate('registeredUsers', 'fullName email name');
 
     const cleanEvents = events.map(ev => ({
       ...ev.toObject(),
