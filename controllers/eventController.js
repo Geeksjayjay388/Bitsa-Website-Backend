@@ -17,7 +17,7 @@ exports.getAllEvents = async (req, res) => {
     }
 
     const events = await Event.find(query)
-      .populate('registeredUsers', 'name email') // ADD THIS LINE - populates user data
+      .populate('registeredUsers', 'fullName email') // CHANGED: name → fullName
       .sort({ date: 1 });
 
     res.status(200).json({
@@ -38,7 +38,7 @@ exports.getAllEvents = async (req, res) => {
 exports.getEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
-      .populate('registeredUsers', 'name email'); // ADD THIS LINE TOO
+      .populate('registeredUsers', 'fullName email'); // CHANGED: name → fullName
 
     if (!event) {
       return res.status(404).json({
@@ -101,7 +101,7 @@ exports.registerForEvent = async (req, res) => {
     await event.save();
 
     // Populate before sending response
-    await event.populate('registeredUsers', 'name email');
+    await event.populate('registeredUsers', 'fullName email'); // CHANGED: name → fullName
 
     res.status(200).json({
       success: true,
@@ -159,7 +159,7 @@ exports.unregisterFromEvent = async (req, res) => {
 exports.getMyEvents = async (req, res) => {
   try {
     const events = await Event.find({ registeredUsers: req.userId })
-      .populate('registeredUsers', 'name email'); // ADD THIS LINE TOO
+      .populate('registeredUsers', 'fullName email'); // CHANGED: name → fullName
 
     res.status(200).json({
       success: true,
