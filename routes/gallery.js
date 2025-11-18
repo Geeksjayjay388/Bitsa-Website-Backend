@@ -5,12 +5,14 @@ const {
   getGalleryImage,
   uploadImage,
   updateImage,
-  deleteImage
+  deleteImage,
+  testCloudinary  // ADD THIS
 } = require('../controllers/galleryController');
 
 const { protect, authorize } = require('../middleware/auth');
 
-
+// Test route - IMPORTANT: Put this BEFORE the /:id route
+router.get('/test-config', protect, authorize('admin'), testCloudinary);
 
 // Public routes
 router.get('/', getGalleryImages);

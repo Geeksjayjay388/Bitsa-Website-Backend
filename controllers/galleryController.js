@@ -181,4 +181,25 @@ exports.deleteImage = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+  // ... your existing exports ...
+
+// @desc    Test Cloudinary configuration
+// @route   GET /api/gallery/test-config
+// @access  Private (Admin only)
+exports.testCloudinary = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      message: 'Cloudinary configuration check',
+      config: {
+        cloudName: process.env.CLOUDINARY_CLOUD_NAME || 'MISSING',
+        apiKey: process.env.CLOUDINARY_API_KEY || 'MISSING',
+        apiSecret: process.env.CLOUDINARY_API_SECRET ? 'SET (hidden)' : 'MISSING',
+        apiSecretLength: process.env.CLOUDINARY_API_SECRET?.length || 0
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
 };
