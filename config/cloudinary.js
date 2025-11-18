@@ -1,5 +1,15 @@
 const cloudinary = require('cloudinary').v2;
 
+// DEBUG: Log what we're actually getting
+console.log('═══════════════════════════════════════════');
+console.log('🔍 CLOUDINARY CONFIGURATION DEBUG');
+console.log('═══════════════════════════════════════════');
+console.log('Cloud Name:', process.env.CLOUDINARY_CLOUD_NAME);
+console.log('API Key:', process.env.CLOUDINARY_API_KEY);
+console.log('API Secret:', process.env.CLOUDINARY_API_SECRET);
+console.log('API Secret Length:', process.env.CLOUDINARY_API_SECRET?.length);
+console.log('═══════════════════════════════════════════');
+
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,

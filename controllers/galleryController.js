@@ -181,7 +181,7 @@ exports.deleteImage = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
-  // ... your existing exports ...
+};
 
 // @desc    Test Cloudinary configuration
 // @route   GET /api/gallery/test-config
@@ -201,5 +201,4 @@ exports.testCloudinary = async (req, res) => {
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
-};
 };
