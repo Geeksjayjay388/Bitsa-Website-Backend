@@ -8,30 +8,32 @@ cloudinary.config({
 
 const uploadToCloudinary = async (file, folder = 'bitsa') => {
   try {
+    console.log('Upload starting for:', file.name);
+    
     const result = await cloudinary.uploader.upload(file.tempFilePath, {
       folder: folder,
-      resource_type: 'auto',
-      transformation: [
-        { width: 1200, height: 800, crop: 'limit' },
-        { quality: 'auto' },
-        { fetch_format: 'auto' }
-      ]
+      resource_type: 'auto'
     });
+    
+    console.log('Upload successful:', result.secure_url);
     
     return {
       url: result.secure_url,
       publicId: result.public_id
     };
   } catch (error) {
+    console.error('Upload failed:', error.message);
     throw new Error(`Image upload failed: ${error.message}`);
   }
 };
 
 const deleteFromCloudinary = async (publicId) => {
   try {
-    await cloudinary.uploader.destroy(publicId);
+    const result = await cloudinary.uploader.destroy(publicId);
+    return result;
   } catch (error) {
-    console.error('Error deleting from Cloudinary:', error);
+    console.error('Delete failed:', error);
+    throw new Error(`Image deletion failed: ${error.message}`);
   }
 };
 

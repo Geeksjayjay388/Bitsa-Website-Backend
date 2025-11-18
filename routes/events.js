@@ -1,136 +1,28 @@
+// routes/events.js
 const express = require('express');
 const router = express.Router();
-const Event = require('../models/Event');
 const { protect } = require('../middleware/auth');
+const {
+  getAllEvents,
+  getEvent,
+  registerForEvent,
+  unregisterFromEvent,
+  getMyEvents
+} = require('../controllers/eventController');
 
-// @desc    Get all events
-// @route   GET /api/events
-// @access  Public
-router.get('/', async (req, res, next) => {
-  try {
-    const events = await Event.find().sort({ date: 1 });
+// PRIVATE — Get events the logged-in user is registered for
+router.get('/my/events', protect, getMyEvents);
 
-    res.status(200).json({
-      success: true,
-      count: events.length,
-      data: events
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// PUBLIC — Get all events (with populated registered users)
+router.get('/', getAllEvents);
 
-// @desc    Get single event
-// @route   GET /api/events/:id
-// @access  Public
-router.get('/:id', async (req, res, next) => {
-  try {
-    const event = await Event.findById(req.params.id);
+// PUBLIC — Get single event (with populated registered users)
+router.get('/:id', getEvent);
 
-    if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: 'Event not found'
-      });
-    }
+// PRIVATE — Register for event
+router.post('/:id/register', protect, registerForEvent);
 
-    res.status(200).json({
-      success: true,
-      data: event
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// @desc    Register for event
-// @route   POST /api/events/:id/register
-// @access  Private
-router.post('/:id/register', protect, async (req, res, next) => {
-  try {
-    const event = await Event.findById(req.params.id);
-
-    if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: 'Event not found'
-      });
-    }
-
-    // Check if already registered
-    const alreadyRegistered = event.registeredUsers.some(
-      userId => userId.toString() === req.user.id
-    );
-
-    if (alreadyRegistered) {
-      return res.status(400).json({
-        success: false,
-        message: 'Already registered for this event'
-      });
-    }
-
-    // Check capacity
-    if (event.registeredUsers.length >= event.capacity) {
-      return res.status(400).json({
-        success: false,
-        message: 'Event is full'
-      });
-    }
-
-    event.registeredUsers.push(req.user.id);
-    await event.save();
-
-    res.status(200).json({
-      success: true,
-      data: event,
-      message: 'Successfully registered for event'
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// @desc    Unregister from event
-// @route   DELETE /api/events/:id/unregister
-// @access  Private
-router.delete('/:id/unregister', protect, async (req, res, next) => {
-  try {
-    const event = await Event.findById(req.params.id);
-
-    if (!event) {
-      return res.status(404).json({
-        success: false,
-        message: 'Event not found'
-      });
-    }
-
-    // Check if user is registered
-    const isRegistered = event.registeredUsers.some(
-      userId => userId.toString() === req.user.id
-    );
-
-    if (!isRegistered) {
-      return res.status(400).json({
-        success: false,
-        message: 'You are not registered for this event'
-      });
-    }
-
-    // Remove user from registered users
-    event.registeredUsers = event.registeredUsers.filter(
-      userId => userId.toString() !== req.user.id
-    );
-
-    await event.save();
-
-    res.status(200).json({
-      success: true,
-      data: event,
-      message: 'Successfully unregistered from event'
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+// PRIVATE — Unregister from event
+router.delete('/:id/unregister', protect, unregisterFromEvent);
 
 module.exports = router;

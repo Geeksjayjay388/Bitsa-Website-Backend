@@ -1,3 +1,4 @@
+// models/Event.js
 const mongoose = require('mongoose');
 
 const EventSchema = new mongoose.Schema({
@@ -21,7 +22,7 @@ const EventSchema = new mongoose.Schema({
   },
   venue: {
     type: String,
-    default: 'TBA'  // CHANGED: Made optional with default
+    default: 'TBA'
   },
   capacity: {
     type: Number,
@@ -30,7 +31,7 @@ const EventSchema = new mongoose.Schema({
   },
   imageUrl: {
     type: String,
-    default: 'https://via.placeholder.com/800x400?text=Event+Image'  // CHANGED: Added default
+    default: 'https://via.placeholder.com/800x400?text=Event+Image'
   },
   category: {
     type: String,
@@ -49,7 +50,7 @@ const EventSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false  // CHANGED: Made optional
+    required: false
   }
 }, {
   timestamps: true
