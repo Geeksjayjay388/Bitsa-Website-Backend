@@ -16,7 +16,9 @@ exports.getAllEvents = async (req, res) => {
       query.date = { $gte: new Date() };
     }
 
-    const events = await Event.find(query).sort({ date: 1 });
+    const events = await Event.find(query)
+      .populate('registeredUsers', 'name email') // ADD THIS LINE - populates user data
+      .sort({ date: 1 });
 
     res.status(200).json({
       success: true,
@@ -35,7 +37,8 @@ exports.getAllEvents = async (req, res) => {
 // Get single event (public)
 exports.getEvent = async (req, res) => {
   try {
-    const event = await Event.findById(req.params.id);
+    const event = await Event.findById(req.params.id)
+      .populate('registeredUsers', 'name email'); // ADD THIS LINE TOO
 
     if (!event) {
       return res.status(404).json({
@@ -97,6 +100,9 @@ exports.registerForEvent = async (req, res) => {
     event.registeredUsers.push(req.userId);
     await event.save();
 
+    // Populate before sending response
+    await event.populate('registeredUsers', 'name email');
+
     res.status(200).json({
       success: true,
       message: 'Successfully registered for event',
@@ -152,7 +158,8 @@ exports.unregisterFromEvent = async (req, res) => {
 // Get user's registered events (protected)
 exports.getMyEvents = async (req, res) => {
   try {
-    const events = await Event.find({ registeredUsers: req.userId });
+    const events = await Event.find({ registeredUsers: req.userId })
+      .populate('registeredUsers', 'name email'); // ADD THIS LINE TOO
 
     res.status(200).json({
       success: true,

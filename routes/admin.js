@@ -37,13 +37,14 @@ router.get('/dashboard/stats', async (req, res, next) => {
   }
 });
 
-// @desc    Get all users
+// @desc    Get all users with registered events
 // @route   GET /api/admin/users
 // @access  Private (Admin)
 router.get('/users', async (req, res, next) => {
   try {
     const users = await User.find()
       .select('-password')
+      .populate('registeredEvents', 'title date venue') // ADD THIS LINE
       .sort({ createdAt: -1 });
 
     res.status(200).json({

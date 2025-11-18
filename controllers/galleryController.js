@@ -1,5 +1,5 @@
 const Gallery = require('../models/Gallery');
-const cloudinary = require('../config/cloudinary');
+const { uploadToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 const ErrorResponse = require('../utils/errorResponse');
 
 // @desc    Get all gallery images
@@ -52,35 +52,69 @@ exports.getGalleryImage = async (req, res, next) => {
 // @access  Private (Admin only)
 exports.uploadImage = async (req, res, next) => {
   try {
+    console.log('=== UPLOAD REQUEST ===');
+    console.log('Files:', req.files);
+    console.log('Body:', req.body);
+    console.log('User:', req.user);
+
+    // Validate file upload
     if (!req.files || !req.files.image) {
-      return next(new ErrorResponse('Please upload an image', 400));
+      return res.status(400).json({
+        success: false,
+        message: 'Please upload an image'
+      });
+    }
+
+    // Validate required fields
+    if (!req.body.title || !req.body.description || !req.body.category) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide title, description, and category'
+      });
     }
 
     const file = req.files.image;
-
-    // Upload to cloudinary
-    const result = await cloudinary.uploader.upload(file.tempFilePath, {
-      folder: 'bitsa/gallery',
-      use_filename: true
+    console.log('File details:', {
+      name: file.name,
+      size: file.size,
+      mimetype: file.mimetype,
+      tempFilePath: file.tempFilePath
     });
 
+    // Upload to Cloudinary using helper function
+    console.log('Uploading to Cloudinary...');
+    const uploadResult = await uploadToCloudinary(file, 'bitsa/gallery');
+    console.log('Cloudinary upload success:', uploadResult);
+
+    // Create gallery entry
     const image = await Gallery.create({
       title: req.body.title,
       description: req.body.description,
       category: req.body.category,
       image: {
-        url: result.secure_url,
-        publicId: result.public_id
+        url: uploadResult.url,
+        publicId: uploadResult.publicId
       },
       uploadedBy: req.user.id
     });
 
+    console.log('Gallery document created:', image);
+
     res.status(201).json({
       success: true,
-      data: image
+      data: image,
+      message: 'Image uploaded successfully'
     });
   } catch (error) {
-    next(error);
+    console.error('=== UPLOAD ERROR ===');
+    console.error('Error:', error);
+    console.error('Stack:', error.stack);
+    
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error uploading image',
+      error: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
 
@@ -97,18 +131,15 @@ exports.updateImage = async (req, res, next) => {
 
     // Handle image update if new file uploaded
     if (req.files && req.files.image) {
-      // Delete old image
-      await cloudinary.uploader.destroy(image.image.publicId);
+      // Delete old image from Cloudinary
+      await deleteFromCloudinary(image.image.publicId);
 
       const file = req.files.image;
-      const result = await cloudinary.uploader.upload(file.tempFilePath, {
-        folder: 'bitsa/gallery',
-        use_filename: true
-      });
+      const uploadResult = await uploadToCloudinary(file, 'bitsa/gallery');
 
       req.body.image = {
-        url: result.secure_url,
-        publicId: result.public_id
+        url: uploadResult.url,
+        publicId: uploadResult.publicId
       };
     }
 
@@ -137,8 +168,8 @@ exports.deleteImage = async (req, res, next) => {
       return next(new ErrorResponse('Image not found', 404));
     }
 
-    // Delete from cloudinary
-    await cloudinary.uploader.destroy(image.image.publicId);
+    // Delete from Cloudinary
+    await deleteFromCloudinary(image.image.publicId);
 
     await image.deleteOne();
 
