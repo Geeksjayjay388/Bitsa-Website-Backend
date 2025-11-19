@@ -23,7 +23,7 @@ exports.protect = async (req, res, next) => {
     console.log('❌ No token found');
     return res.status(401).json({
       success: false,
-      message: 'Not authorized to access this route - No token provided'
+      message: 'Please log in or sign up to register for this event'
     });
   }
 
@@ -55,7 +55,7 @@ exports.protect = async (req, res, next) => {
     console.error('❌ Token verification error:', error.message);
     return res.status(401).json({
       success: false,
-      message: 'Not authorized to access this route - Invalid token',
+      message: 'Session expired. Please log in again',
       error: error.message
     });
   }
