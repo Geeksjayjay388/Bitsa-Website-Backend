@@ -6,6 +6,11 @@ const Gallery = require('../models/Gallery');
 const Feedback = require('../models/Feedback');
 const { protect, authorize } = require('../middleware/auth');
 const cloudinary = require('../config/cloudinary');
+const {
+  getEventRegistrations,
+  approveRegistration,
+  rejectRegistration
+} = require('../controllers/eventController');
 
 const router = express.Router();
 
@@ -309,5 +314,9 @@ router.delete('/gallery/:id', async (req, res, next) => {
     next(error);
   }
 });
+// @desc    Get all registrations for an event
+// @route   GET /api/admin/events/:id/registrations
+// @access  Private (Admin)
+router.get('/events/:id/registrations', getEventRegistrations);
 
 module.exports = router;
