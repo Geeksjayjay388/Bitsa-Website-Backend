@@ -44,8 +44,10 @@ const EventSchema = new mongoose.Schema({
     default: 'upcoming'
   },
   registeredUsers: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
+  user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  status: { type: String, enum: ['pending', 'approved'], default: 'pending' }
+
+
   }],
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
