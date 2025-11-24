@@ -10,7 +10,7 @@ const fileUpload = require('express-fileupload');
 const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 const errorHandler = require('./middleware/errorHandler');
-
+const registrationRoutes = require('./routes/registration');
 // Load env vars
 dotenv.config();
 
@@ -18,7 +18,7 @@ dotenv.config();
 connectDB();
 
 const app = express();
-
+app.use('/api', registrationRoutes);
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

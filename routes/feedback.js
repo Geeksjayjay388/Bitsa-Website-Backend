@@ -94,9 +94,7 @@ router.get('/admin/all', protect, async (req, res, next) => {
     console.log('🔍 ADMIN ROUTE HIT - /admin/all');
     console.log('User:', req.user?.email);
     console.log('Role:', req.user?.role);
-    console.log('Full user object:', JSON.stringify(req.user, null, 2));
 
-    // Check if user exists
     if (!req.user) {
       console.log('❌ No user found in request');
       return res.status(401).json({
@@ -105,7 +103,6 @@ router.get('/admin/all', protect, async (req, res, next) => {
       });
     }
 
-    // Check if user is admin
     if (req.user.role !== 'admin') {
       console.log('❌ User is not admin. Role:', req.user.role);
       return res.status(403).json({
@@ -126,7 +123,6 @@ router.get('/admin/all', protect, async (req, res, next) => {
     });
   } catch (error) {
     console.error('❌ Error fetching feedback:', error);
-    console.error('Stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Server error while fetching feedback',
@@ -177,6 +173,61 @@ router.put('/:id/status', protect, async (req, res, next) => {
   }
 });
 
+// @desc    Admin responds to feedback
+// @route   PUT /api/feedback/:id/respond
+// @access  Private/Admin
+router.put('/:id/respond', protect, async (req, res, next) => {
+  try {
+    console.log('📧 Admin responding to feedback:', req.params.id);
+
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Not authorized to access this route'
+      });
+    }
+
+    const { response } = req.body;
+
+    if (!response || !response.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a response'
+      });
+    }
+
+    const feedback = await Feedback.findById(req.params.id);
+
+    if (!feedback) {
+      return res.status(404).json({
+        success: false,
+        message: 'Feedback not found'
+      });
+    }
+
+    feedback.response = response;
+    feedback.respondedBy = req.user.id;
+    feedback.respondedAt = Date.now();
+    feedback.status = 'replied';
+
+    await feedback.save();
+
+    console.log('✅ Admin response saved successfully');
+
+    res.status(200).json({
+      success: true,
+      data: feedback
+    });
+  } catch (error) {
+    console.error('❌ Error responding to feedback:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message
+    });
+  }
+});
+
 // @desc    Delete feedback (Admin only)
 // @route   DELETE /api/feedback/:id
 // @access  Private/Admin
@@ -184,7 +235,6 @@ router.delete('/:id', protect, async (req, res, next) => {
   try {
     console.log('🗑️ Admin deleting feedback:', req.params.id);
 
-    // Check if user is admin
     if (req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,

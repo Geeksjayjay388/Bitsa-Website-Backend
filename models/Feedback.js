@@ -37,6 +37,20 @@ const FeedbackSchema = new mongoose.Schema({
   adminNotes: {
     type: String,
     default: ''
+  },
+  // NEW: Admin response
+  response: {
+    type: String,
+    default: ''
+  },
+  respondedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  respondedAt: {
+    type: Date,
+    default: null
   }
 }, {
   timestamps: true
@@ -44,5 +58,6 @@ const FeedbackSchema = new mongoose.Schema({
 
 // Index for faster queries
 FeedbackSchema.index({ status: 1, createdAt: -1 });
+FeedbackSchema.index({ user: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Feedback', FeedbackSchema);

@@ -51,7 +51,11 @@ const EventSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     required: false
-  }
+  },
+  registrationOpen: {
+  type: Boolean,
+  default: true
+}
 }, {
   timestamps: true
 });
